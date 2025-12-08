@@ -9,7 +9,7 @@ set -e
 # CONFIGURATION
 # ============================================
 
-NODEBAY_API="${NODEBAY_API:-https://nodebay.vercel.app}"
+NODEBAY_API="https://57325b28d992.ngrok-free.app"
 CODESPACE_NAME="${CODESPACE_NAME:-$(hostname)}"
 
 # Load workspace config (repos to clone per CLI)
