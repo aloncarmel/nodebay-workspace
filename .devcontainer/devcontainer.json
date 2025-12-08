@@ -13,14 +13,14 @@
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
   
-  "postCreateCommand": "bash .devcontainer/install-tools.sh",
-  "postStartCommand": "nohup bash .devcontainer/boot.sh > /tmp/boot.log 2>&1 &",
+  "postCreateCommand": "chmod +x /workspaces/*/.devcontainer/*.sh && bash /workspaces/*/.devcontainer/install-tools.sh 2>&1 | tee /tmp/install-tools.log",
+  "postStartCommand": "bash /workspaces/*/.devcontainer/boot.sh > /tmp/boot.log 2>&1 &",
   
   "forwardPorts": [7681, 7682, 7683, 7684, 4040, 8080],
   
-  "containerEnv": {
-    "NODEBAY_API": "${localEnv:NODEBAY_API}",
-    "NGROK_AUTHTOKEN": "${localEnv:NGROK_AUTHTOKEN}"
+  "remoteEnv": {
+    "NODEBAY_API": "${containerEnv:NODEBAY_API}",
+    "NGROK_AUTHTOKEN": "${containerEnv:NGROK_AUTHTOKEN}"
   },
   
   "secrets": {
@@ -47,9 +47,8 @@
   "customizations": {
     "vscode": {
       "settings": {
-        "terminal.integrated.defaultProfile.linux": "tmux"
+        "terminal.integrated.defaultProfile.linux": "bash"
       }
     }
   }
 }
-

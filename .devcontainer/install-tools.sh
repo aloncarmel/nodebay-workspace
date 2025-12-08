@@ -2,27 +2,37 @@
 # install-tools.sh - Runs ONCE when codespace is created
 # Installs system tools and CLIs
 
-set -e
+# Log everything
+exec > >(tee -a /tmp/install-tools.log) 2>&1
 
 echo "╔══════════════════════════════════════════════════════════════╗"
 echo "║       NodeBay Workspace - Initial Setup                      ║"
 echo "╚══════════════════════════════════════════════════════════════╝"
+echo ""
+echo "Started at: $(date)"
+echo "User: $(whoami)"
+echo "PWD: $(pwd)"
+echo ""
 
 # ============================================
 # SYSTEM DEPENDENCIES
 # ============================================
 
-echo ""
 echo "📦 Installing system dependencies..."
 
-sudo apt-get update -qq
+sudo apt-get update -qq || {
+  echo "⚠️ apt-get update failed, continuing anyway..."
+}
+
 sudo apt-get install -y -qq \
   tmux \
   jq \
   curl \
   wget \
-  inotify-tools \
-  > /dev/null
+  lsof \
+  || {
+  echo "⚠️ Some packages failed to install, continuing..."
+}
 
 echo "✅ System dependencies installed"
 
@@ -33,13 +43,18 @@ echo "✅ System dependencies installed"
 echo ""
 echo "🖥️  Installing ttyd..."
 
-TTYD_VERSION="1.7.4"
-wget -q "https://github.com/tsl0922/ttyd/releases/download/${TTYD_VERSION}/ttyd.x86_64" \
-  -O /tmp/ttyd
-chmod +x /tmp/ttyd
-sudo mv /tmp/ttyd /usr/local/bin/ttyd
-
-echo "✅ ttyd installed"
+if command -v ttyd &> /dev/null; then
+  echo "  ttyd already installed: $(ttyd --version 2>&1 | head -1)"
+else
+  TTYD_VERSION="1.7.4"
+  wget -q "https://github.com/tsl0922/ttyd/releases/download/${TTYD_VERSION}/ttyd.x86_64" \
+    -O /tmp/ttyd || {
+    echo "⚠️ Failed to download ttyd"
+  }
+  chmod +x /tmp/ttyd
+  sudo mv /tmp/ttyd /usr/local/bin/ttyd
+  echo "  ✅ ttyd installed"
+fi
 
 # ============================================
 # NGROK (Tunneling)
@@ -48,14 +63,22 @@ echo "✅ ttyd installed"
 echo ""
 echo "🌐 Installing ngrok..."
 
-curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | \
-  sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
-echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | \
-  sudo tee /etc/apt/sources.list.d/ngrok.list
-sudo apt-get update -qq
-sudo apt-get install -y -qq ngrok > /dev/null
-
-echo "✅ ngrok installed"
+if command -v ngrok &> /dev/null; then
+  echo "  ngrok already installed: $(ngrok --version 2>&1)"
+else
+  curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | \
+    sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
+  echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | \
+    sudo tee /etc/apt/sources.list.d/ngrok.list
+  sudo apt-get update -qq
+  sudo apt-get install -y -qq ngrok || {
+    echo "⚠️ Failed to install ngrok via apt, trying direct download..."
+    wget -q https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz -O /tmp/ngrok.tgz
+    tar -xzf /tmp/ngrok.tgz -C /tmp
+    sudo mv /tmp/ngrok /usr/local/bin/ngrok
+  }
+  echo "  ✅ ngrok installed"
+fi
 
 # ============================================
 # CLAUDE CLI (Anthropic)
@@ -64,16 +87,20 @@ echo "✅ ngrok installed"
 echo ""
 echo "🤖 Installing Claude CLI..."
 
-# Install Claude Code CLI
-curl -fsSL https://claude.ai/install.sh | sh 2>/dev/null || {
-  echo "  ⚠️  Claude CLI install script failed, trying npm..."
-  npm install -g @anthropic-ai/claude-code 2>/dev/null || true
-}
+if command -v claude &> /dev/null; then
+  echo "  Claude CLI already installed"
+else
+  # Try official installer
+  curl -fsSL https://claude.ai/install.sh 2>/dev/null | sh || {
+    echo "  ⚠️  Claude CLI install script failed"
+    echo "  User can install manually: npm install -g @anthropic-ai/claude-code"
+  }
+fi
 
 # Add to PATH
 echo 'export PATH="$HOME/.claude/bin:$PATH"' >> ~/.bashrc
 
-echo "✅ Claude CLI installed"
+echo "✅ Claude CLI setup complete"
 
 # ============================================
 # CODEX CLI (OpenAI)
@@ -82,11 +109,15 @@ echo "✅ Claude CLI installed"
 echo ""
 echo "🧠 Installing Codex CLI..."
 
-npm install -g @openai/codex 2>/dev/null || {
-  echo "  ⚠️  Codex not available on npm, skipping..."
-}
+if command -v codex &> /dev/null; then
+  echo "  Codex CLI already installed"
+else
+  npm install -g @openai/codex 2>/dev/null || {
+    echo "  ⚠️  Codex CLI not available or failed to install"
+  }
+fi
 
-echo "✅ Codex CLI installed"
+echo "✅ Codex CLI setup complete"
 
 # ============================================
 # GEMINI CLI (Google)
@@ -95,14 +126,15 @@ echo "✅ Codex CLI installed"
 echo ""
 echo "✨ Installing Gemini CLI..."
 
-pip install -q google-generativeai 2>/dev/null || true
-
-# Install Gemini CLI if available
-npm install -g @google/gemini-cli 2>/dev/null || {
-  echo "  ⚠️  Gemini CLI not available, using SDK only..."
+pip install -q google-generativeai 2>/dev/null || {
+  echo "  ⚠️  Google AI SDK failed to install"
 }
 
-echo "✅ Gemini CLI installed"
+npm install -g @google/gemini-cli 2>/dev/null || {
+  echo "  ⚠️  Gemini CLI not available"
+}
+
+echo "✅ Gemini CLI setup complete"
 
 # ============================================
 # COPILOT CLI (GitHub)
@@ -112,27 +144,36 @@ echo ""
 echo "🐙 Installing GitHub Copilot CLI..."
 
 npm install -g @githubnext/github-copilot-cli 2>/dev/null || {
-  echo "  Trying alternative package..."
   npm install -g @github/copilot-cli 2>/dev/null || {
-    echo "  ⚠️  Copilot CLI not available, skipping..."
+    echo "  ⚠️  Copilot CLI not available"
   }
 }
 
-echo "✅ Copilot CLI installed"
+echo "✅ Copilot CLI setup complete"
 
 # ============================================
-# CREATE WORKSPACE DIRECTORIES
+# VERIFY INSTALLATIONS
 # ============================================
 
 echo ""
-echo "📁 Creating workspace directories..."
+echo "📋 Verifying installations..."
 
-mkdir -p /workspaces/dev/claude
-mkdir -p /workspaces/dev/codex
-mkdir -p /workspaces/dev/gemini
-mkdir -p /workspaces/dev/copilot
+check_cmd() {
+  if command -v "$1" &> /dev/null; then
+    echo "  ✅ $1: $(which $1)"
+  else
+    echo "  ❌ $1: not found"
+  fi
+}
 
-echo "✅ Workspace directories created"
+check_cmd tmux
+check_cmd jq
+check_cmd ttyd
+check_cmd ngrok
+check_cmd node
+check_cmd npm
+check_cmd python3
+check_cmd pip
 
 # ============================================
 # DONE
@@ -143,17 +184,6 @@ echo "╔═══════════════════════�
 echo "║       ✅ Initial Setup Complete!                             ║"
 echo "╚══════════════════════════════════════════════════════════════╝"
 echo ""
-echo "Installed:"
-echo "  • tmux, ttyd, ngrok, jq"
-echo "  • Claude CLI (Anthropic)"
-echo "  • Codex CLI (OpenAI)"
-echo "  • Gemini CLI (Google)"
-echo "  • Copilot CLI (GitHub)"
+echo "Finished at: $(date)"
+echo "Log file: /tmp/install-tools.log"
 echo ""
-echo "Directories:"
-echo "  • /workspaces/dev/claude"
-echo "  • /workspaces/dev/codex"
-echo "  • /workspaces/dev/gemini"
-echo "  • /workspaces/dev/copilot"
-echo ""
-
