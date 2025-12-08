@@ -1,5 +1,5 @@
 {
-  "name": "NodeBay Multi-CLI Workspace",
+  "name": "NodeBay Workspace",
   "image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
   
   "features": {
@@ -13,36 +13,33 @@
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
   
-  "postCreateCommand": "chmod +x /workspaces/*/.devcontainer/*.sh && bash /workspaces/*/.devcontainer/install-tools.sh 2>&1 | tee /tmp/install-tools.log",
+  "postCreateCommand": "chmod +x /workspaces/*/.devcontainer/*.sh && bash /workspaces/*/.devcontainer/install-base.sh 2>&1 | tee /tmp/install.log",
   "postStartCommand": "bash /workspaces/*/.devcontainer/boot.sh > /tmp/boot.log 2>&1 &",
   
-  "forwardPorts": [7681, 7682, 7683, 7684, 4040, 8080],
-  
-  "remoteEnv": {
-    "NODEBAY_API": "${containerEnv:NODEBAY_API}",
-    "NGROK_AUTHTOKEN": "${containerEnv:NGROK_AUTHTOKEN}"
-  },
-  
-  "secrets": {
-    "NGROK_AUTHTOKEN": {
-      "description": "Ngrok authentication token for creating tunnels"
+  "portsAttributes": {
+    "7681": {
+      "label": "Claude Terminal",
+      "visibility": "public",
+      "protocol": "https"
     },
-    "NODEBAY_API": {
-      "description": "NodeBay API URL (e.g., https://nodebay.vercel.app)"
+    "7682": {
+      "label": "Codex Terminal", 
+      "visibility": "public",
+      "protocol": "https"
     },
-    "ANTHROPIC_API_KEY": {
-      "description": "API key for Claude CLI"
+    "7683": {
+      "label": "Gemini Terminal",
+      "visibility": "public", 
+      "protocol": "https"
     },
-    "OPENAI_API_KEY": {
-      "description": "API key for Codex CLI"
-    },
-    "GOOGLE_API_KEY": {
-      "description": "API key for Gemini CLI"
-    },
-    "GITHUB_TOKEN": {
-      "description": "GitHub token for Copilot CLI authentication"
+    "7684": {
+      "label": "Copilot Terminal",
+      "visibility": "public",
+      "protocol": "https"
     }
   },
+  
+  "forwardPorts": [7681, 7682, 7683, 7684],
   
   "customizations": {
     "vscode": {
