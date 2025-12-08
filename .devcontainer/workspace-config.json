@@ -1,0 +1,19 @@
+{
+  "_comment": "This is the default config. NodeBay will push a nodebay-config.json to the repo root with user's actual repos.",
+  "claude": {
+    "repo": "",
+    "branch": "main"
+  },
+  "codex": {
+    "repo": "",
+    "branch": "main"
+  },
+  "gemini": {
+    "repo": "",
+    "branch": "main"
+  },
+  "copilot": {
+    "repo": "",
+    "branch": "main"
+  }
+}

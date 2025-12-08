@@ -1,0 +1,55 @@
+{
+  "name": "NodeBay Multi-CLI Workspace",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
+  
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20"
+    },
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.11"
+    },
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  
+  "postCreateCommand": "bash .devcontainer/install-tools.sh",
+  "postStartCommand": "nohup bash .devcontainer/boot.sh > /tmp/boot.log 2>&1 &",
+  
+  "forwardPorts": [7681, 7682, 7683, 7684, 4040, 8080],
+  
+  "containerEnv": {
+    "NODEBAY_API": "${localEnv:NODEBAY_API}",
+    "NGROK_AUTHTOKEN": "${localEnv:NGROK_AUTHTOKEN}"
+  },
+  
+  "secrets": {
+    "NGROK_AUTHTOKEN": {
+      "description": "Ngrok authentication token for creating tunnels"
+    },
+    "NODEBAY_API": {
+      "description": "NodeBay API URL (e.g., https://nodebay.vercel.app)"
+    },
+    "ANTHROPIC_API_KEY": {
+      "description": "API key for Claude CLI"
+    },
+    "OPENAI_API_KEY": {
+      "description": "API key for Codex CLI"
+    },
+    "GOOGLE_API_KEY": {
+      "description": "API key for Gemini CLI"
+    },
+    "GITHUB_TOKEN": {
+      "description": "GitHub token for Copilot CLI authentication"
+    }
+  },
+  
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "tmux"
+      }
+    }
+  }
+}
+
