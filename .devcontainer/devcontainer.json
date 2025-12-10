@@ -8,7 +8,8 @@
   },
   
   "postCreateCommand": "bash .devcontainer/install-base.sh 2>&1 | tee /tmp/install.log || true",
-  "postStartCommand": "cd /workspaces/$(ls /workspaces/) && git pull origin main && bash .devcontainer/boot.sh > /tmp/boot.log 2>&1 &",
+  "postStartCommand": "cd /workspaces/$(ls /workspaces/ | head -1) && git pull origin main && bash .devcontainer/boot.sh > /tmp/boot.log 2>&1 &",
+  "postAttachCommand": "cat /tmp/boot.log 2>/dev/null || echo 'No boot log yet'",
   
   "portsAttributes": {
     "7681": {
