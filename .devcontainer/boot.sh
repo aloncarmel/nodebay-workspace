@@ -106,9 +106,25 @@ for cli in $ENABLED; do
     git clone "$repo" "$dir" 2>/dev/null || true
   fi
   
-  # Start tmux session
+  # Start tmux session and auto-launch CLI
   tmux new-session -d -s "$cli" -c "$dir" 2>/dev/null || true
-  tmux send-keys -t "$cli" "clear && echo '=== $cli CLI ===' && echo 'Dir: $dir'" Enter
+  tmux send-keys -t "$cli" "clear && echo '=== $cli CLI ===' && echo 'Dir: $dir' && echo 'Starting $cli...'" Enter
+  
+  # Auto-start the CLI
+  case $cli in
+    claude)
+      tmux send-keys -t "$cli" "claude" Enter
+      ;;
+    codex)
+      tmux send-keys -t "$cli" "codex" Enter
+      ;;
+    gemini)
+      tmux send-keys -t "$cli" "gemini" Enter
+      ;;
+    copilot)
+      tmux send-keys -t "$cli" "github-copilot-cli" Enter
+      ;;
+  esac
   
   # Start ttyd
   port=${PORTS[$cli]}
