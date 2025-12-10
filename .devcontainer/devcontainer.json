@@ -7,27 +7,14 @@
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
   
-  "postCreateCommand": "bash .devcontainer/install-base.sh 2>&1 | tee /tmp/install.log || true",
-  "postStartCommand": "cd /workspaces/$(ls /workspaces/ | head -1) && git pull origin main && bash .devcontainer/boot.sh > /tmp/boot.log 2>&1 &",
-  "postAttachCommand": "cat /tmp/boot.log 2>/dev/null || echo 'No boot log yet'",
+  "postCreateCommand": "bash .devcontainer/install-base.sh",
+  "postStartCommand": "bash .devcontainer/agent.sh > /tmp/agent.log 2>&1 &",
   
   "portsAttributes": {
-    "7681": {
-      "label": "Claude Terminal",
-      "visibility": "public"
-    },
-    "7682": {
-      "label": "Codex Terminal", 
-      "visibility": "public"
-    },
-    "7683": {
-      "label": "Gemini Terminal",
-      "visibility": "public"
-    },
-    "7684": {
-      "label": "Copilot Terminal",
-      "visibility": "public"
-    }
+    "7681": { "label": "Claude Terminal", "visibility": "public" },
+    "7682": { "label": "Codex Terminal", "visibility": "public" },
+    "7683": { "label": "Gemini Terminal", "visibility": "public" },
+    "7684": { "label": "Copilot Terminal", "visibility": "public" }
   },
   
   "forwardPorts": [7681, 7682, 7683, 7684]
