@@ -2,6 +2,9 @@
 # boot.sh - Runs on every codespace start
 # Only installs and starts CLIs that are enabled
 
+# Log everything
+exec > >(tee -a /tmp/boot.log) 2>&1
+
 # Get codespace name from environment or hostname
 CODESPACE_NAME="${CODESPACE_NAME:-$(hostname)}"
 
@@ -10,7 +13,21 @@ echo "========================================"
 echo "  NodeBay Workspace Starting..."
 echo "========================================"
 echo "Codespace: $CODESPACE_NAME"
+echo "Time: $(date)"
 echo ""
+
+# Find workspace and pull latest config
+WORKSPACE_DIR=""
+for d in /workspaces/nodebay-*/; do
+  [ -d "$d" ] && WORKSPACE_DIR="$d" && break
+done
+
+if [ -n "$WORKSPACE_DIR" ]; then
+  echo "Pulling latest config from repo..."
+  cd "$WORKSPACE_DIR"
+  git pull origin main 2>&1 || echo "Git pull failed, continuing with local config"
+  echo ""
+fi
 
 # Find config file
 CONFIG_FILE=""
