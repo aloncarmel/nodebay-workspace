@@ -2,10 +2,14 @@
 # boot.sh - Runs on every codespace start
 # Only installs and starts CLIs that are enabled
 
+# Get codespace name from environment or hostname
+CODESPACE_NAME="${CODESPACE_NAME:-$(hostname)}"
+
 echo ""
 echo "========================================"
 echo "  NodeBay Workspace Starting..."
 echo "========================================"
+echo "Codespace: $CODESPACE_NAME"
 echo ""
 
 # Find config file
@@ -110,6 +114,13 @@ for cli in $ENABLED; do
   port=${PORTS[$cli]}
   echo "  Starting terminal on port $port..."
   ttyd -p "$port" -W tmux attach-session -t "$cli" &
+  
+  # Make port public (requires gh cli)
+  sleep 2
+  if command -v gh &>/dev/null; then
+    echo "  Setting port $port to public..."
+    gh codespace ports visibility "$port:public" -c "$CODESPACE_NAME" 2>/dev/null || true
+  fi
 done
 
 echo ""

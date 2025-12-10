@@ -2,6 +2,11 @@
   "name": "NodeBay Workspace",
   "image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
   
+  "features": {
+    "ghcr.io/devcontainers/features/sshd:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  
   "postCreateCommand": "bash .devcontainer/install-base.sh 2>&1 | tee /tmp/install.log || true",
   "postStartCommand": "bash .devcontainer/boot.sh > /tmp/boot.log 2>&1 &",
   
