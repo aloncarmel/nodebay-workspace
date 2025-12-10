@@ -67,7 +67,7 @@ for cli in $ENABLED; do
     claude)
       if ! command -v claude &>/dev/null; then
         echo "  Installing Claude CLI..."
-        curl -fsSL https://claude.ai/install.sh 2>/dev/null | sh || true
+        curl -fsSL https://claude.ai/install.sh 2>/dev/null | bash || true
         echo 'export PATH="$HOME/.claude/bin:$PATH"' >> ~/.bashrc
       fi
       export PATH="$HOME/.claude/bin:$PATH"
